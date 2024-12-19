@@ -120,8 +120,6 @@ fonttools==4.55.3
 gast==0.6.0
 google-pasta==0.2.0
 grpcio==1.68.1
-gym==0.26.2
-gym-notices==0.0.8
 h5py==3.12.1
 idna==3.10
 joblib==1.4.2
@@ -137,11 +135,9 @@ namex==0.0.8
 opt_einsum==3.4.0
 optree==0.13.1
 packaging==24.2
-pillow==11.0.0
 protobuf==4.25.5
 Pygments==2.18.0
 pyparsing==3.2.0
-python-dateutil==2.9.0.post0
 pytz==2024.2
 requests==2.32.3
 rich==13.9.4
@@ -171,9 +167,7 @@ MarkupSafe==3.0.2
 mpmath==1.3.0
 networkx==3.4.2
 packaging==24.2
-pillow==11.0.0
 pyparsing==3.2.0
-python-dateutil==2.9.0.post0
 pytz==2024.2
 scipy==1.14.1
 setuptools==75.6.0
