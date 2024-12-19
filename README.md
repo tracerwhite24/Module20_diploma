@@ -86,96 +86,96 @@
 
 Приложение: список необходимых библиотек:
 
-cloudpickle==3.1.0
-contourpy==1.3.1
-cycler==0.12.1
-fonttools==4.55.3
-gym==0.26.2
-gym-notices==0.0.8
-joblib==1.4.2
-kiwisolver==1.4.7
-matplotlib==3.9.4
-numpy==2.2.0
-packaging==24.2
-pandas==2.2.3
-pillow==11.0.0
-pyparsing==3.2.0
-python-dateutil==2.9.0.post0
-pytz==2024.2
-scikit-learn==1.6.0
-scipy==1.14.1
-seaborn==0.13.2
-six==1.17.0
-threadpoolctl==3.5.0
-tzdata==2024.2
-absl-py==2.1.0
-astunparse==1.6.3
-certifi==2024.8.30
-charset-normalizer==3.4.0
-cloudpickle==3.1.0
-contourpy==1.3.1
-cycler==0.12.1
-flatbuffers==24.3.25
-fonttools==4.55.3
-gast==0.6.0
-google-pasta==0.2.0
-grpcio==1.68.1
-h5py==3.12.1
-idna==3.10
-joblib==1.4.2
-keras==3.7.0
-kiwisolver==1.4.7
-libclang==18.1.1
-Markdown==3.7
-markdown-it-py==3.0.0
-MarkupSafe==3.0.2
-mdurl==0.1.2
-ml-dtypes==0.4.1
-namex==0.0.8
-opt_einsum==3.4.0
-optree==0.13.1
-packaging==24.2
-protobuf==4.25.5
-Pygments==2.18.0
-pyparsing==3.2.0
-pytz==2024.2
-requests==2.32.3
-rich==13.9.4
-scipy==1.14.1
-setuptools==75.6.0
-six==1.17.0
-tensorboard==2.17.1
-tensorboard-data-server==0.7.2
-tensorflow==2.17.0
-tensorflow-intel==2.17.0
-termcolor==2.5.0
-threadpoolctl==3.5.0
-typing_extensions==4.12.2
-urllib3==2.2.3
-Werkzeug==3.1.3
-wheel==0.45.1
-wrapt==1.17.0
-contourpy==1.3.1
-cycler==0.12.1
-filelock==3.16.1
-fonttools==4.55.3
-fsspec==2024.10.0
-Jinja2==3.1.4
-joblib==1.4.2
-kiwisolver==1.4.7
-MarkupSafe==3.0.2
-mpmath==1.3.0
-networkx==3.4.2
-packaging==24.2
-pyparsing==3.2.0
-pytz==2024.2
-scipy==1.14.1
-setuptools==75.6.0
-six==1.17.0
-sympy==1.13.1
-threadpoolctl==3.5.0
-torch==2.5.1
-torchaudio==2.5.1
-torchvision==0.20.1
-typing_extensions==4.12.2
-
+    cloudpickle==3.1.0
+    contourpy==1.3.1
+    cycler==0.12.1
+    fonttools==4.55.3
+    gym==0.26.2
+    gym-notices==0.0.8
+    joblib==1.4.2
+    kiwisolver==1.4.7
+    matplotlib==3.9.4
+    numpy==2.2.0
+    packaging==24.2
+    pandas==2.2.3
+    pillow==11.0.0
+    pyparsing==3.2.0
+    python-dateutil==2.9.0.post0
+    pytz==2024.2
+    scikit-learn==1.6.0
+    scipy==1.14.1
+    seaborn==0.13.2
+    six==1.17.0
+    threadpoolctl==3.5.0
+    tzdata==2024.2
+    absl-py==2.1.0
+    astunparse==1.6.3
+    certifi==2024.8.30
+    charset-normalizer==3.4.0
+    cloudpickle==3.1.0
+    contourpy==1.3.1
+    cycler==0.12.1
+    flatbuffers==24.3.25
+    fonttools==4.55.3
+    gast==0.6.0
+    google-pasta==0.2.0
+    grpcio==1.68.1
+    h5py==3.12.1
+    idna==3.10
+    joblib==1.4.2
+    keras==3.7.0
+    kiwisolver==1.4.7
+    libclang==18.1.1
+    Markdown==3.7
+    markdown-it-py==3.0.0
+    MarkupSafe==3.0.2
+    mdurl==0.1.2
+    ml-dtypes==0.4.1
+    namex==0.0.8
+    opt_einsum==3.4.0
+    optree==0.13.1
+    packaging==24.2
+    protobuf==4.25.5
+    Pygments==2.18.0
+    pyparsing==3.2.0
+    pytz==2024.2
+    requests==2.32.3
+    rich==13.9.4
+    scipy==1.14.1
+    setuptools==75.6.0
+    six==1.17.0
+    tensorboard==2.17.1
+    tensorboard-data-server==0.7.2
+    tensorflow==2.17.0
+    tensorflow-intel==2.17.0
+    termcolor==2.5.0
+    threadpoolctl==3.5.0
+    typing_extensions==4.12.2
+    urllib3==2.2.3
+    Werkzeug==3.1.3
+    wheel==0.45.1
+    wrapt==1.17.0
+    contourpy==1.3.1
+    cycler==0.12.1
+    filelock==3.16.1
+    fonttools==4.55.3
+    fsspec==2024.10.0
+    Jinja2==3.1.4
+    joblib==1.4.2
+    kiwisolver==1.4.7
+    MarkupSafe==3.0.2
+    mpmath==1.3.0
+    networkx==3.4.2
+    packaging==24.2
+    pyparsing==3.2.0
+    pytz==2024.2
+    scipy==1.14.1
+    setuptools==75.6.0
+    six==1.17.0
+    sympy==1.13.1
+    threadpoolctl==3.5.0
+    torch==2.5.1
+    torchaudio==2.5.1
+    torchvision==0.20.1
+    typing_extensions==4.12.2
+    
