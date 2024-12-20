@@ -1,128 +1,107 @@
 import pandas as pd
 import numpy as np
 import tensorflow as tf
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import OneHotEncoder
 import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
 
-data = pd.read_csv('train.csv')
 
-# Кодирование имен с использованием One-Hot Encoding
-encoder_boys = OneHotEncoder(sparse_output=False)
-encoder_girls = OneHotEncoder(sparse_output=False)
+def load_data(filename: str) -> pd.DataFrame:
+    data = pd.read_csv(filename)
+    return data
 
-boys_encoded = encoder_boys.fit_transform(data[['Мальчики']])
-girls_encoded = encoder_girls.fit_transform(data[['Девочки']])
+def preprocess_data(data: pd.DataFrame) -> (np.ndarray, np.ndarray, np.ndarray):
+    data['Label_Boys'] = data['Мальчики'].notnull().astype(int)
+    data['Label_Girls'] = data['Девочки'].notnull().astype(int)
 
-# Объединение закодированных имен с исходными данными
-X = data[['Год']]
-y_boys = boys_encoded
-y_girls = girls_encoded
+    names = data['Мальчики'].fillna('') + ' ' + data['Девочки'].fillna('')
+    encoder = LabelEncoder()
+    encoded_names = encoder.fit_transform(names)
 
-# Разделение данных на обучающую и тестовую выборки
-X_train, X_test, y_boys_train, y_boys_test, y_girls_train, y_girls_test = train_test_split(
-    X, y_boys, y_girls, test_size=0.2, random_state=42)
+    X = encoded_names.reshape(-1, 1)  # Преобразуем в двумерный массив
+    y_boys = data['Label_Boys'].values
+    y_girls = data['Label_Girls'].values
 
-# Создание модели для мальчиков
-model_boys = tf.keras.Sequential([
-    tf.keras.layers.Dense(10, activation='relu', input_shape=(X_train.shape[1],)),
-    tf.keras.layers.Dense(y_boys_train.shape[1], activation='softmax')  # Используем softmax для многоклассовой классификации
-])
+    return X, y_boys, y_girls
 
-# Компиляция модели для мальчиков
-model_boys.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
-# Обучение модели для мальчиков и сохранение истории обучения
-history_boys = model_boys.fit(X_train, y_boys_train, epochs=100, verbose=1, validation_data=(X_test, y_boys_test))
+def create_model(input_dim: int) -> tf.keras.Sequential:
+    model = tf.keras.Sequential([
+        tf.keras.layers.Input(shape=(1,)),
+        tf.keras.layers.Embedding(input_dim=input_dim, output_dim=8),
+        tf.keras.layers.GlobalAveragePooling1D(),
+        tf.keras.layers.Dense(10, activation='relu'),
+        tf.keras.layers.Dense(1, activation='sigmoid')
+    ])
+    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+    return model
 
-# Оценка модели для мальчиков
-loss_boys, accuracy_boys = model_boys.evaluate(X_test, y_boys_test)
-print(f'Потери мальчиков: {loss_boys}, Точность для мальчиков: {accuracy_boys}')
 
-# Создание модели для девочек
-model_girls = tf.keras.Sequential([
-    tf.keras.layers.Dense(10, activation='relu', input_shape=(X_train.shape[1],)),
-    tf.keras.layers.Dense(y_girls_train.shape[1], activation='softmax')
-])
+def train_model(model: tf.keras.Sequential, X_train: np.ndarray, y_train: np.ndarray, X_val: np.ndarray,
+                y_val: np.ndarray):
+    history = model.fit(X_train, y_train, epochs=10, batch_size=32, validation_data=(X_val, y_val))
+    return history
 
-# Компиляция модели для девочек
-model_girls.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
-# Обучение модели для девочек и сохранение истории обучения
-history_girls = model_girls.fit(X_train, y_girls_train, epochs=100, verbose=1, validation_data=(X_test, y_girls_test))
+def evaluate_model(model: tf.keras.Sequential, X_test: np.ndarray, y_test: np.ndarray):
+    loss, accuracy = model.evaluate(X_test, y_test)
+    return loss, accuracy
 
-# Оценка модели для девочек
-loss_girls, accuracy_girls = model_girls.evaluate(X_test, y_girls_test)
-print(f'Потери для девочек: {loss_girls}, Точность для девочек: {accuracy_girls}')
 
-# Визуализация потерь и точности для мальчиков
-plt.figure(figsize=(12, 5))
+def plot_history(history, title):
+    plt.figure(figsize=(12, 5))
 
-plt.subplot(1, 2, 1)
-plt.plot(history_boys.history['loss'], label='train loss')
-plt.plot(history_boys.history['val_loss'], label='val loss')
-plt.title('Потери для модели мальчиков')
-plt.xlabel('Epochs')
-plt.ylabel('Loss')
-plt.legend()
+    plt.subplot(1, 2, 1)
+    plt.plot(history.history['loss'], label='train loss')
+    plt.plot(history.history['val_loss'], label='val loss')
+    plt.title(f'Потери для {title}')
+    plt.xlabel('Эпохи')
+    plt.ylabel('Потери')
+    plt.legend()
 
-plt.subplot(1, 2, 2)
-plt.plot(history_boys.history['accuracy'], label='train accuracy')
-plt.plot(history_boys.history['val_accuracy'], label='val accuracy')
-plt.title('Точность модели мальчиков')
-plt.xlabel('Epochs')
-plt.ylabel('Accuracy')
-plt.legend()
+    plt.subplot(1, 2, 2)
+    plt.plot(history.history['accuracy'], label='train accuracy')
+    plt.plot(history.history['val_accuracy'], label='val accuracy')
+    plt.title(f'Точность для {title}')
+    plt.xlabel('Эпохи')
+    plt.ylabel('Точность')
+    plt.legend()
 
-plt.tight_layout()
-plt.show()
+    plt.show()
 
-# Визуализация потерь и точности для девочек
-plt.figure(figsize=(12, 5))
 
-plt.subplot(1, 2, 1)
-plt.plot(history_girls.history['loss'], label='train loss')
-plt.plot(history_girls.history['val_loss'], label='val loss')
-plt.title('Потери для модели девочек')
-plt.xlabel('Epochs')
-plt.ylabel('Loss')
-plt.legend()
+def main():
+    # Загрузка и предобработка данных
+    data = load_data('train.csv')
+    X, y_boys, y_girls = preprocess_data(data)
 
-plt.subplot(1, 2, 2)
-plt.plot(history_girls.history['accuracy'], label='train accuracy')
-plt.plot(history_girls.history['val_accuracy'], label='val accuracy')
-plt.title('Точноть модели девочек')
-plt.xlabel('Epochs')
-plt.ylabel('Accuracy')
-plt.legend()
+    # Разделение данных на обучающую и тестовую выборки
+    X_train, X_test, y_boys_train, y_boys_test, y_girls_train, y_girls_test = train_test_split(
+        X, y_boys, y_girls, test_size=0.2, random_state=42)
 
-plt.tight_layout()
-plt.show()
+    # Создание и обучение модели для мальчиков
+    model_boys = create_model(len(np.unique(X)))
+    history_boys = train_model(model_boys, X_train, y_boys_train, X_test, y_boys_test)
 
-# Прогнозирование имен на тестовых данных
-predictions_boys = model_boys.predict(X_test)
-predictions_girls = model_girls.predict(X_test)
+    # Оценка модели для мальчиков
+    loss_boys, accuracy_boys = evaluate_model(model_boys, X_test, y_boys_test)
+    print(f'Потери мальчиков: {loss_boys}, Точность для мальчиков: {accuracy_boys}')
 
-# Декодирование предсказаний
-predicted_classes_boys = np.argmax(predictions_boys, axis=1)
-predicted_classes_girls = np.argmax(predictions_girls, axis=1)
+    # Создание и обучение модели для девочек
+    model_girls = create_model(len(np.unique(X)))
+    history_girls = train_model(model_girls, X_train, y_girls_train, X_test, y_girls_test)
 
-predicted_names_boys = encoder_boys.inverse_transform(np.eye(len(encoder_boys.categories_[0]))[predicted_classes_boys])
-predicted_names_girls = encoder_girls.inverse_transform(np.eye(len(encoder_girls.categories_[0]))[predicted_classes_girls])
+    # Оценка модели для девочек
+    loss_girls, accuracy_girls = evaluate_model(model_girls, X_test, y_girls_test)
+    print(f'Потери для девочек: {loss_girls}, Точность для девочек: {accuracy_girls}')
 
-# Визуализация предсказанных имен
-plt.figure(figsize=(12, 6))
-x_axis = np.arange(len(predicted_names_boys))
+    # Визуализация результатов
+    plot_history(history_boys, 'мальчиков')
+    plot_history(history_girls, 'девочек')
 
-plt.bar(x_axis - 0.2, predicted_names_boys.flatten(), width=0.4, label='Predicted Boys Names', color='blue')
-plt.bar(x_axis + 0.2, predicted_names_girls.flatten(), width=0.4, label='Predicted Girls Names', color='pink')
 
-plt.title('Predicted Names for Boys and Girls')
-plt.xlabel('Samples')
-plt.ylabel('Predicted Names')
-plt.xticks(x_axis)
-plt.legend()
-plt.show()
+if __name__ == "__main__":
+    main()
 
 
 
