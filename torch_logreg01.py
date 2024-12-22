@@ -120,7 +120,7 @@ def plot_losses(losses_male: list, losses_female: list, num_epochs: int) -> None
 
 # Основной блок выполнения
 if __name__ == "__main__":
-
+    # Загружаем датасет
     data = pd.read_csv('train.csv')
     # Преобразуем столбцы 'Мальчики' и 'Девочки' в категориальный тип
     data['Мальчики'] = data['Мальчики'].astype('category')
