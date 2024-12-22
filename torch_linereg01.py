@@ -6,150 +6,176 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 
-data = pd.read_csv('train.csv')
+def load_data(filename: str) -> pd.DataFrame:
+    """
+    Загрузка данных из указанного файла.
 
-data['Год'] = pd.to_numeric(data['Год'], errors='coerce')
+    :param filename: Имя файла для загрузки данных.
+    :return: DataFrame с загруженными данными.
+    """
+    data = pd.read_csv(filename)
 
-# Удаление строк с пропусками только из столбца 'Год'
-data.dropna(subset=['Год'], inplace=True)
+    if data.empty:
+        raise ValueError("Данные не загружены или файл пуст.")
 
-# Подготовка данных для мальчиков
-X = data['Год'].values.reshape(-1, 1)  # Признаки (Год)
-y_boys = data['Мальчики'].values  # Целевая переменная (Мальчики)
+    return data
 
-# Кодирование меток для мальчиков
-label_encoder_boys = LabelEncoder()
-y_boys_encoded = label_encoder_boys.fit_transform(y_boys)
+def load_and_preprocess_data(filename):
+    """
+    Загружает и обрабатывает данные из CSV файла.
 
-# Разделение данных на обучающую и тестовую выборки для мальчиков
-X_train, X_test, y_train_boys, y_test_boys = train_test_split(X, y_boys_encoded, test_size=0.2, random_state=42)
+    :param filename: str, имя файла с данными.
+    :return: DataFrame, обработанный DataFrame.
+    """
+    data = pd.read_csv(filename)
+    data['Год'] = pd.to_numeric(data['Год'], errors='coerce')
+    data.dropna(subset=['Год'], inplace=True)
+    return data
 
-# Подготовка данных для девочек
-y_girls = data['Девочки'].values  # Целевая переменная (Девочки)
+def prepare_data(data, target_column):
+    """
+    Подготавливает данные для обучения модели.
 
-# Кодирование меток для девочек
-label_encoder_girls = LabelEncoder()
-y_girls_encoded = label_encoder_girls.fit_transform(y_girls)
+    :param data: DataFrame, исходные данные.
+    :param target_column: str, название целевой переменной.
+    :return: tuple, (X_train, X_test, y_train, y_test) - обучающие и тестовые наборы данных.
+    """
+    X = data['Год'].values.reshape(-1, 1)
+    y = data[target_column].values
 
-# Разделение данных на обучающую и тестовую выборки для девочек
-X_train_girls, X_test_girls, y_train_girls, y_test_girls = train_test_split(X, y_girls_encoded, test_size=0.2, random_state=42)
+    label_encoder = LabelEncoder()
+    y_encoded = label_encoder.fit_transform(y)
 
-# Преобразование данных в тензоры PyTorch
-X_train_tensor = torch.tensor(X_train, dtype=torch.float32)
-y_train_boys_tensor = torch.tensor(y_train_boys, dtype=torch.long)  # Целевые переменные как long
+    X_train, X_test, y_train, y_test = train_test_split(X, y_encoded, test_size=0.2, random_state=42)
 
-X_train_tensor_girls = torch.tensor(X_train_girls, dtype=torch.float32)
-y_train_girls_tensor = torch.tensor(y_train_girls, dtype=torch.long)  # Целевые переменные как long
+    return X_train, X_test, y_train, y_test, label_encoder
 
-# Определение модели
 class SimpleModel(nn.Module):
-    def __init__(self, output_size):  # Принимаем размер выходного слоя как параметр
+    """
+    Простая нейронная сеть с одним скрытым слоем.
+
+    :param output_size: int, количество выходных классов.
+    """
+    def __init__(self, output_size):
         super(SimpleModel, self).__init__()
         self.fc = nn.Linear(1, 10)  # Скрытый слой
         self.output = nn.Linear(10, output_size)  # Выходной слой
 
     def forward(self, x):
+        """
+        Прямое распространение данных через модель.
+
+        :param x: Tensor, входные данные.
+        :return: Tensor, выходные данные модели.
+        """
         x = torch.relu(self.fc(x))
         return self.output(x)
 
-# Инициализация моделей, функции потерь и оптимизаторов
-model_boys = SimpleModel(len(label_encoder_boys.classes_))
-criterion_boys = nn.CrossEntropyLoss()  # Для многоклассовой классификации
-optimizer_boys = optim.Adam(model_boys.parameters(), lr=0.001)
+def train_model(model, X_train_tensor, y_train_tensor, criterion, optimizer, epochs=100):
+    """
+    Обучает модель на заданных данных.
 
-model_girls = SimpleModel(len(label_encoder_girls.classes_))
-criterion_girls = nn.CrossEntropyLoss()  # Для многоклассовой классификации
-optimizer_girls = optim.Adam(model_girls.parameters(), lr=0.001)
+    :param model: nn.Module, модель для обучения.
+    :param X_train_tensor: Tensor, обучающие входные данные.
+    :param y_train_tensor: Tensor, обучающие целевые данные.
+    :param criterion: функция потерь.
+    :param optimizer: оптимизатор для обновления весов модели.
+    :param epochs: int, количество эпох для обучения.
+    :return: list, потери на каждой эпохе.
+    """
+    losses = []
 
-# Списки для хранения потерь во время обучения
-losses_boys = []
-losses_girls = []
+    for epoch in range(epochs):
+        model.train()
+        optimizer.zero_grad()
+        outputs = model(X_train_tensor)
+        loss = criterion(outputs, y_train_tensor)
+        loss.backward()
+        optimizer.step()
+        losses.append(loss.item())
 
-# Обучение модели для мальчиков
-for epoch in range(100):  # Количество эпох
-    model_boys.train()
+        if (epoch + 1) % 10 == 0:
+            print(f'Epoch [{epoch + 1}/{epochs}], Loss: {loss.item():.4f}')
 
-    optimizer_boys.zero_grad()  # Обнуление градиентов
+    return losses
 
-    # Прямой проход
-    outputs_boys = model_boys(X_train_tensor)
+def evaluate_model(model, X_test_tensor, y_test):
+    """
+    Оценивает производительность модели на тестовых данных.
 
-    # Вычисление функции потерь
-    loss_boys = criterion_boys(outputs_boys, y_train_boys_tensor)
+    :param model: nn.Module, модель для оценки.
+    :param X_test_tensor: Tensor, тестовые входные данные.
+    :param y_test: array-like, истинные метки классов для тестовых данных.
+    :return: float, точность модели на тестовых данных.
+    """
+    model.eval()
+    with torch.no_grad():
+        outputs = model(X_test_tensor)
+        _, predicted = torch.max(outputs, 1)
+        accuracy = (predicted.numpy() == y_test).mean()
 
-    # Обратный проход и оптимизация
-    loss_boys.backward()
-    optimizer_boys.step()
+    return accuracy
 
-    losses_boys.append(loss_boys.item())  # Сохранение потерь
+def plot_losses(losses_boys, losses_girls):
+    """
+    Строит график потерь во время обучения.
 
-    if (epoch + 1) % 10 == 0:  # Печать каждые 10 эпох
-        print(f'Epoch [{epoch + 1}/100], Loss (Boys): {loss_boys.item():.4f}')
+    :param losses_boys: list, потери модели для мальчиков.
+    :param losses_girls: list, потери модели для девочек.
+    """
+    plt.figure(figsize=(12, 6))
+    plt.plot(losses_boys, label='Loss (Мальчики)')
+    plt.plot(losses_girls, label='Loss (Девочки)')
+    plt.title('Training Loss')
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.show()
 
-# Обучение модели для девочек
-for epoch in range(100):  # Количество эпох
-    model_girls.train()
+# Основной код
+if __name__ == "__main__":
+    # Загрузка и предобработка данных
+    data = load_data('train.csv')
 
-    optimizer_girls.zero_grad()  # Обнуление градиентов
+    # Обработка данных
+    data = load_and_preprocess_data('train.csv')
 
-    # Прямой проход
-    outputs_girls = model_girls(X_train_tensor_girls)
+    # Подготовка данных для мальчиков
+    X_train_boys, X_test_boys, y_train_boys, y_test_boys, label_encoder_boys = prepare_data(data, 'Мальчики')
 
-    # Вычисление функции потерь
-    loss_girls = criterion_girls(outputs_girls, y_train_girls_tensor)
+    # Подготовка данных для девочек
+    X_train_girls, X_test_girls, y_train_girls, y_test_girls, label_encoder_girls = prepare_data(data, 'Девочки')
 
-    # Обратный проход и оптимизация
-    loss_girls.backward()
-    optimizer_girls.step()
+    # Преобразование данных в тензоры PyTorch
+    X_train_tensor_boys = torch.tensor(X_train_boys, dtype=torch.float32)
+    y_train_boys_tensor = torch.tensor(y_train_boys, dtype=torch.long)
 
-    losses_girls.append(loss_girls.item())  # Сохранение потерь
+    X_train_tensor_girls = torch.tensor(X_train_girls, dtype=torch.float32)
+    y_train_girls_tensor = torch.tensor(y_train_girls, dtype=torch.long)
 
-    if (epoch + 1) % 10 == 0:  # Печать каждые 10 эпох
-        print(f'Epoch [{epoch + 1}/100], Loss (Girls): {loss_girls.item():.4f}')
+    # Инициализация моделей и оптимизаторов
+    model_boys = SimpleModel(len(label_encoder_boys.classes_))
+    criterion_boys = nn.CrossEntropyLoss()
+    optimizer_boys = optim.Adam(model_boys.parameters(), lr=0.001)
 
-# Визуализация потерь во время обучения
-plt.figure(figsize=(12, 6))
+    model_girls = SimpleModel(len(label_encoder_girls.classes_))
+    criterion_girls = nn.CrossEntropyLoss()
+    optimizer_girls = optim.Adam(model_girls.parameters(), lr=0.001)
 
-# График потерь для мальчиков
-plt.subplot(1, 2, 1)
-plt.plot(losses_boys, label='Потери (мальчики)', color='blue')
-plt.title('Потери во время обучения (мальчики)')
-plt.xlabel('Эпохи')
-plt.ylabel('Потери')
-plt.legend()
+    # Обучение моделей
+    losses_boys = train_model(model_boys, X_train_tensor_boys, y_train_boys_tensor,
+                              criterion_boys, optimizer_boys)
 
-# График потерь для девочек
-plt.subplot(1, 2, 2)
-plt.plot(losses_girls, label='Потери (девочки)', color='pink')
-plt.title('Потери во время обучения (девочки)')
-plt.xlabel('Эпохи')
-plt.ylabel('Потери')
-plt.legend()
+    losses_girls = train_model(model_girls, X_train_tensor_girls, y_train_girls_tensor,
+                                criterion_girls, optimizer_girls)
 
-plt.tight_layout()
-plt.show()
+    # Оценка моделей
+    accuracy_boys = evaluate_model(model_boys, torch.tensor(X_test_boys, dtype=torch.float32), y_test_boys)
+    print(f'Accuracy (Мальчики): {accuracy_boys:.4f}')
 
-# Предсказание для мальчиков
-model_boys.eval()
-with torch.no_grad():
-    predictions_boys = model_boys(torch.tensor(X_test, dtype=torch.float32))
+    accuracy_girls = evaluate_model(model_girls, torch.tensor(X_test_girls, dtype=torch.float32), y_test_girls)
+    print(f'Accuracy (Девочки): {accuracy_girls:.4f}')
 
-# Преобразование предсказаний в классы для мальчиков
-_, predicted_classes_boys = torch.max(predictions_boys, 1)
-
-# Оценка производительности для мальчиков
-accuracy_boys = (predicted_classes_boys.numpy() == y_test_boys).mean()
-print(f'Точность на тестовых данных (мальчики): {accuracy_boys:.4f}')
-
-# Предсказание для девочек
-model_girls.eval()
-with torch.no_grad():
-    predictions_girls = model_girls(torch.tensor(X_test_girls, dtype=torch.float32))
-
-# Преобразование предсказаний в классы для девочек
-_, predicted_classes_girls = torch.max(predictions_girls, 1)
-
-# Оценка производительности для девочек
-accuracy_girls = (predicted_classes_girls.numpy() == y_test_girls).mean()
-print(f'Точность на тестовых данных (девочки): {accuracy_girls:.4f}')
+    # Визуализация потерь
+    plot_losses(losses_boys, losses_girls)
 
